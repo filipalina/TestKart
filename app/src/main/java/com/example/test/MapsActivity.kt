@@ -31,9 +31,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     private lateinit var lastLocation: Location
     private lateinit var fusedLocationClient : FusedLocationProviderClient
     private val gson = Gson()
+    //localforecast metapi
     private val path = "https://in2000-apiproxy.ifi.uio.no/weatherapi/locationforecast/2.0/compact?"
+    //sunrise metapi
     private val path2 = "https://in2000-apiproxy.ifi.uio.no/weatherapi/sunrise/2.0/.json?lat=40.7127&lon=-74.0059&date=2022-03-01&offset=-05:00"
+    //visible planets api https://github.com/csymlstd/visible-planets-api
     private val path3 = "https://visible-planets-api.herokuapp.com/v2?"
+    // nilu api
     private val path4 = "https://api.nilu.no/aq/utd/59.89869/10.81495/3?method=within&components=no2"
 
 
@@ -109,13 +113,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         try {
 
-            //tempo
+            // værdata
             val response = Fuel.get(path+"lat=${latitude}&lon=$longitude").awaitString()
 
             val result = gson.fromJson(response, Base::class.java).properties?.timeseries?.get(0)?.data?.instant
 
 
-            //moonrise
+            //sunrise, henter moonrise
             val response2 = Fuel.get(path2).awaitString()
 
             val result2 = gson.fromJson(response2, Base2::class.java).location?.time?.get(0)?.moonrise?.time.toString()
@@ -126,11 +130,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             val response3 = Fuel.get(path3+"latitude=${latitude}&longitude=$longitude").awaitString()
             val result3 = gson.fromJson(response3, Base3::class.java).data
 
-
+            // nilu luftkvalitet
             val response4 = Fuel.get(path4).awaitString()
             //val result4 = gson.fromJson(response4, Base4::class.java).
 
 
+            //lager en liste med planeter
            var planetene = ""
             if (result3 != null) {
                 for(data in result3){
@@ -140,7 +145,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
 
 
-
+            // legger i viewet
 
             if (result != null) {
                 binding.text.text = " Værvarsel neste time:\n Temperatur: " + result.details?.air_temperature.toString()+"\n Luft fuktighet: "+ result.details?.relative_humidity.toString()+
@@ -195,7 +200,7 @@ data class Units(val air_pressure_at_sea_level: String?, val air_temperature: St
 
 
 
-
+// klasser fra sunrise api
 data class Base2(val location: Location1?, val meta: Meta2?)
 
 data class High_moon(val desc: String?, val elevation: String?, val time: String?)
@@ -230,7 +235,7 @@ data class Time(val date: String?, val high_moon: High_moon?, val low_moon: Low_
 
 
 
-
+// klasser fra planet api
 data class Base3(val meta: Meta3?, val data: List<Data1>?, val links: Links?)
 
 data class Data1(val name: String?, val aboveHorizon: Boolean?, val nakedEyeObject: Boolean?)
@@ -240,7 +245,7 @@ data class Links(val self: String?)
 data class Meta3(val time: String?, val latitude: Number?, val longitude: Number?, val elevation: Any?)
 
 
-
+// klasser fra nilu api
 data class Base4(val id: Number?, val zone: String?, val municipality: String?, val area: String?, val station: String?, val eoi: String?, val type: String?, val component: String?, val fromTime: String?, val toTime: String?, val value: Number?, val unit: String?, val latitude: Number?, val longitude: Number?, val timestep: Number?, val index: Number?, val color: String?, val isValid: Boolean?, val isVisible: Boolean?)
 
 
